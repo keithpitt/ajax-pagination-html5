@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Better Ajax Pagination (HTML5 Only)</title>
+  <%= stylesheet_link_tag :all %>
+  <%= javascript_include_tag 'jquery.min', 'rails' %>
+  <%= csrf_meta_tag %>
+  <link href='http://fonts.googleapis.com/css?family=Droid+Sans' rel='stylesheet' type='text/css'>
+</head>
+<body>
+  <div class="container">
+
+    <h1><%= link_to "Better Ajax Pagination (HTML5 Only)", root_path %></h1>
+    <p>This pagination example works across all browers, and degrades gracefully.</p>
+    <p>Grab the source code <a href="http://github.com/keithpitt/ajax-pagination-html5">here</a></p>
+
+    <div id="support">This browser does not support the new HTML5 History API</div>
+
+    <div id="loading" style="display: none">Loading...</div>
+
+    <form action="<%= search_path %>" class="ajax-results">
+      <input type="text" name="q" id="search" autocomplete="" placeholder="Search for a video game" value="<%= params[:q] %>" />
+      <input type="submit" id="button" value="Search" />
+    </form>
+
+    <div id="content">
+      <%= yield %>
+    </div>
+
+    <script type="text/javascript">
+
+      if(history.pushState) {
+
+        $(document).ready(function() {
+          $('#support').hide();
+        })
+
+        function update(url) {
+          $('#loading').slideToggle('fast', function() {
+            $.ajax({
+              url: url,
+              success: function(html) {
+                $('#loading').slideToggle('fast');
+                $('#content').html(html);
+              }
+            })
+          });
+        }
+
+        $('.pagination a').live('click', function() {
+          var href = $(this).attr('href');
+          history.pushState({ path: href }, '', href);
+          update(href);
+
+          return false;
+        });
+
+        $('form').live('submit', function() {
+          var form = $(this);
+          var url = form.attr('action') + '?' + form.serialize();
+
+          history.pushState({ path: url }, '', url);
+          update(url);
+
+          return false;
+        });
+
+        $(window).bind('popstate', function(event) {
+          var state = event.originalEvent.state;
+
+          if(state)
+            update(state.path)
+        })
+
+      }
+
+    </script>
+
+  </div>
+</body>
+</html>
